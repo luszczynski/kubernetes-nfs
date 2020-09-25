@@ -35,7 +35,7 @@ spec:
                - "/bin/sh"
                - "-c"
                - >
-                 for dir in $(seq 50); do mkdir $SHARED_DIRECTORY/pv$dir && chmod 777 $SHARED_DIRECTORY/pv$dir; done 
+                 for dir in $(seq 100); do mkdir $SHARED_DIRECTORY/pv$dir && chmod 777 $SHARED_DIRECTORY/pv$dir; done 
         securityContext:
           privileged: true
         volumeMounts:

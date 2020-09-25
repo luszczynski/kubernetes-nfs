@@ -44,8 +44,8 @@ NFS_CLUSTER_IP=$(oc get svc/nfs-server-alpine -o=jsonpath='{.spec.clusterIP}')
 
 [source,bash]
 ----
-# Create 50 PVs 100Gi
-for i in {0..50}; do
+# Create 100 PVs 100Gi
+for i in {0..100}; do
 
 cat <<EOF | kubectl apply -f - 
 apiVersion: v1
@@ -54,7 +54,7 @@ metadata:
   name: pv$i
 spec:
   capacity:
-    storage: 50Gi
+    storage: 100Gi
   nfs:
     server: $NFS_CLUSTER_IP
     path: /pv$i
