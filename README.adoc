@@ -1,0 +1,70 @@
+= kubernetes-nfs
+
+Project to create a NFS Server container on top of Kubernetes/Openshift
+
+- [x] Install NFS on container
+- [x] Generate PVs using bash
+- [ ] Use NFS provisioner 
+
+== Pre-req
+
+=== Create project and set permission
+
+[source,bash]
+----
+export PROJECT_NAME=nfs-server
+
+# For Openshift
+oc new-project $PROJECT_NAME
+oc adm policy add-scc-to-user privileged -z default -n $PROJECT_NAME
+
+# For Kubernetes
+kubectl create namespace $PROJECT_NAME
+
+----
+
+== Installing
+
+=== Deploying NFS Server
+
+[source,bash]
+----
+kubectl apply -f nfs-server-deployment.yml -n $PROJECT_NAME
+kubectl apply -f nfs-server-svc.yml -n $PROJECT_NAME
+----
+
+=== Creating PV
+
+It's mandatory to use ClusterIp in yours PVs. So first, get your svc ip using the following command:
+
+[source,bash]
+----
+NFS_CLUSTER_IP=$(oc get svc/nfs-server-alpine -o=jsonpath='{.spec.clusterIP}')
+----
+
+[source,bash]
+----
+# Create 50 PVs 100Gi
+for i in {0..50}; do
+
+cat <<EOF | kubectl apply -f - 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv$i
+spec:
+  capacity:
+    storage: 50Gi
+  nfs:
+    server: $NFS_CLUSTER_IP
+    path: /pv$i
+  accessModes:
+    - ReadWriteOnce
+    - ReadWriteMany
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Recycle
+  volumeMode: Filesystem
+EOF
+
+done
+----

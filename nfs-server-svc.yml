@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nfs-server-alpine
+    app.kubernetes.io/component: nfs-server-alpine
+    app.kubernetes.io/instance: nfs-server-alpine
+  name: nfs-server-alpine
+spec:
+  ports:
+  - port: 2049
+    protocol: TCP
+    targetPort: 2049
+  selector:
+    deployment: nfs-server-alpine
+  type: ClusterIP
