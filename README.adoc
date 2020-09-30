@@ -39,8 +39,17 @@ It's mandatory to use ClusterIp in yours PVs. So first, get your svc ip using th
 
 [source,bash]
 ----
-NFS_CLUSTER_IP=$(oc get svc/nfs-server-alpine -o=jsonpath='{.spec.clusterIP}')
+NFS_CLUSTER_IP=$(kubectl -n $PROJECT_NAME get svc/nfs-server-alpine -o=jsonpath='{.spec.clusterIP}')
 ----
+
+Now make sure the var NFS_CLUSTER_IP contains the cluster ip:
+
+[source,bash]
+----
+echo $NFS_CLUSTER_IP
+----
+
+And create 100 PVs:
 
 [source,bash]
 ----
