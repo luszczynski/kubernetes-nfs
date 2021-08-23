@@ -27,15 +27,17 @@ kubectl create namespace $PROJECT_NAME
 
 === Deploying NFS Server
 
+To deploy NFS Server, run:
+
 [source,bash]
 ----
-kubectl apply -f nfs-server-deployment.yml -n $PROJECT_NAME
-kubectl apply -f nfs-server-svc.yml -n $PROJECT_NAME
+kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment.yml -n $PROJECT_NAME
+kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml -n $PROJECT_NAME
 ----
 
 === Creating PV
 
-It's mandatory to use ClusterIp in yours PVs. So first, get your svc ip using the following command:
+We'll need the ClusterIp of our NFS Server to use it in our PVs. We need to get it by running the following command:
 
 [source,bash]
 ----
