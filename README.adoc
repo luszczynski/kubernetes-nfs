@@ -1,9 +1,10 @@
 = kubernetes-nfs
 
-Project to create a NFS Server container on top of Kubernetes/Openshift
+Project to create a NFS Server container on top of Kubernetes/Openshift. This is helpful when trying to access in quick way an RWX PV. I use it for demo only.
 
 - [x] Install NFS on container
 - [x] Generate PVs using bash
+- [x] Create persistent option
 - [ ] Use NFS provisioner 
 
 == Pre-req
@@ -25,17 +26,26 @@ kubectl create namespace $PROJECT_NAME
 
 == Installing
 
-=== Deploying NFS Server
+=== Deploying NFS Server Ephemeral
 
 To deploy NFS Server, run:
 
 [source,bash]
 ----
-kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment.yml -n $PROJECT_NAME
+kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment-ephemeral.yml -n $PROJECT_NAME
 kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml -n $PROJECT_NAME
 ----
 
-=== Creating PV
+=== Deploying NFS Server Persistent
+
+[source,bash]
+----
+kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-pvc.yml -n $PROJECT_NAME
+kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment-persistent.yml -n $PROJECT_NAME
+kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml -n $PROJECT_NAME
+----
+
+=== Creating PVs for the cluster
 
 We'll need the ClusterIp of our NFS Server to use it in our PVs. We need to get it by running the following command:
 
@@ -55,27 +65,37 @@ And create 100 PVs:
 
 [source,bash]
 ----
+# Create kubernetes list
+cat <<EOF > /tmp/persistent-volume-tmp.yml
+apiVersion: v1
+kind: List
+items:
+EOF
+
 # Create 100 PVs 100Gi
 for i in {0..100}; do
 
-cat <<EOF | kubectl apply -f - 
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv$i
-spec:
-  capacity:
-    storage: 100Gi
-  nfs:
-    server: $NFS_CLUSTER_IP
-    path: /pv$i
-  accessModes:
-    - ReadWriteOnce
-    - ReadWriteMany
-    - ReadOnlyMany
-  persistentVolumeReclaimPolicy: Recycle
-  volumeMode: Filesystem
+cat <<EOF >> /tmp/persistent-volume-tmp.yml
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv$i
+  spec:
+    capacity:
+      storage: 100Gi
+    nfs:
+      server: $NFS_CLUSTER_IP
+      path: /pv$i
+    accessModes:
+      - ReadWriteOnce
+      - ReadWriteMany
+      - ReadOnlyMany
+    persistentVolumeReclaimPolicy: Recycle
+    volumeMode: Filesystem
 EOF
 
 done
+
+# Create all PVs
+kubectl apply -f /tmp/persistent-volume-tmp.yml
 ----

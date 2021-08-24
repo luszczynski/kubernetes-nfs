@@ -25,9 +25,28 @@ spec:
       - env:
         - name: SHARED_DIRECTORY
           value: /nfsshare
+        - name: VOLUME_COUNT
+          value: "100"
         image: itsthenetwork/nfs-server-alpine@sha256:7fa99ae65c23c5af87dd4300e543a86b119ed15ba61422444207efc7abd0ba20
         imagePullPolicy: IfNotPresent
         name: nfs-server-alpine
+        startupProbe:
+          exec:
+            command:
+              - pidof
+              - rpc.mountd
+          failureThreshold: 30
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+              - pidof
+              - rpc.mountd
+        readinessProbe:
+          exec:
+            command:
+              - pidof
+              - rpc.mountd
         lifecycle:
           postStart:
             exec:
@@ -35,12 +54,13 @@ spec:
                - "/bin/sh"
                - "-c"
                - >
-                 for dir in $(seq 100); do mkdir $SHARED_DIRECTORY/pv$dir && chmod 777 $SHARED_DIRECTORY/pv$dir; done 
+                 for dir in $(seq ${VOLUME_COUNT}); do mkdir $SHARED_DIRECTORY/pv$dir && chmod 777 $SHARED_DIRECTORY/pv$dir; done
         securityContext:
           privileged: true
         volumeMounts:
         - mountPath: /nfsshare
           name: volume
       volumes:
-      - emptyDir: {}
-        name: volume
+      - name: volume
+        persistentVolumeClaim:
+          claimName: nfs-pvc
