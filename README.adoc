@@ -1,6 +1,6 @@
 = kubernetes-nfs
 
-Project to create a NFS Server container on top of Kubernetes/Openshift. This is helpful when trying to access in quick way an RWX PV. I use it for demo only.
+Project to create a NFS Server container on top of Kubernetes/Openshift. This is helpful when we need a quick RWX volume. I use it for demo only.
 
 - [x] Install NFS on container
 - [x] Generate PVs using bash
