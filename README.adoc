@@ -32,17 +32,35 @@ To deploy NFS Server, run:
 
 [source,bash]
 ----
-kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment-ephemeral.yml -n $PROJECT_NAME
-kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml -n $PROJECT_NAME
+# Create deployment for NFS
+kubectl apply \
+  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment-ephemeral.yml \
+  -n $PROJECT_NAME
+
+# Create service for NFS
+kubectl apply \
+  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml \
+  -n $PROJECT_NAME
 ----
 
 === Deploying NFS Server Persistent
 
 [source,bash]
 ----
-kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-pvc.yml -n $PROJECT_NAME
-kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment-persistent.yml -n $PROJECT_NAME
-kubectl apply -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml -n $PROJECT_NAME
+# Create pvc for NFS
+kubectl apply \
+  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-pvc.yml \
+  -n $PROJECT_NAME
+
+# Create deployment for NFS
+kubectl apply \
+  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment-persistent.yml \
+  -n $PROJECT_NAME
+
+# Create service for NFS
+kubectl apply \
+  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml \
+  -n $PROJECT_NAME
 ----
 
 === Creating PVs for the cluster
