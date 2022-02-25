@@ -54,7 +54,7 @@ spec:
                - "/bin/sh"
                - "-c"
                - >
-                 for dir in $(seq ${VOLUME_COUNT}); do mkdir $SHARED_DIRECTORY/pv$dir && chmod 777 $SHARED_DIRECTORY/pv$dir; done
+                 for dir in $(seq ${VOLUME_COUNT}); do mkdir -p $SHARED_DIRECTORY/pv$dir && chmod 777 $SHARED_DIRECTORY/pv$dir; done
         securityContext:
           privileged: true
         volumeMounts:
