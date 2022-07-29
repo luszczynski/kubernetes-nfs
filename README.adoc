@@ -101,6 +101,15 @@ kubectl apply -f /tmp/persistent-volume-tmp.yml
 
 == Clean up
 
+=== Removing NFS Server
+
+[source,bash]
+----
+kubectl delete deploy/nfs-server-alpine -n $PROJECT_NAME
+kubectl delete svc/nfs-server-alpine -n $PROJECT_NAME
+kubectl delete pvc/nfs-pvc -n $PROJECT_NAME
+----
+
 === Removing PVs
 
 [source,bash]
