@@ -1,6 +1,6 @@
-= kubernetes-nfs
+= Kubernetes/OpenShift NFS Server
 
-Project to create a NFS Server container on top of Kubernetes/Openshift. This is helpful when we need a quick RWX volume. I use it for demo only.
+The goal of this project is to create a NFS Server container on top of Kubernetes/OpenShift. This is helpful when we need a quick RWX volume. I use it for demo only.
 
 - [x] Install NFS on container
 - [x] Generate PVs using bash
@@ -15,7 +15,7 @@ Project to create a NFS Server container on top of Kubernetes/Openshift. This is
 ----
 export PROJECT_NAME=nfs-server
 
-# For Openshift
+# For OpenShift
 oc new-project $PROJECT_NAME
 oc adm policy add-scc-to-user privileged -z default -n $PROJECT_NAME
 
@@ -28,92 +28,84 @@ kubectl create namespace $PROJECT_NAME
 
 === Deploying NFS Server Ephemeral
 
-To deploy NFS Server, run:
+To deploy a NFS Server ephemeral (using emptyDir), run:
 
 [source,bash]
 ----
-# Create deployment for NFS
 kubectl apply \
-  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment-ephemeral.yml \
-  -n $PROJECT_NAME
-
-# Create service for NFS
-kubectl apply \
-  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml \
+  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-ephemeral.yml \
   -n $PROJECT_NAME
 ----
 
 === Deploying NFS Server Persistent
 
+To deploy a NFS Server persistent (using PV), run:
+
 [source,bash]
 ----
 # Create pvc for NFS
 kubectl apply \
-  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-pvc.yml \
-  -n $PROJECT_NAME
-
-# Create deployment for NFS
-kubectl apply \
-  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-deployment-persistent.yml \
-  -n $PROJECT_NAME
-
-# Create service for NFS
-kubectl apply \
-  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-svc.yml \
+  -f https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/nfs-server-persistent.yml \
   -n $PROJECT_NAME
 ----
 
 === Creating PVs for the cluster
 
-We'll need the ClusterIp of our NFS Server to use it in our PVs. We need to get it by running the following command:
+We'll need the ClusterIp of our NFS Server to use it in our PVs. We can get it by running the following command:
 
 [source,bash]
 ----
 NFS_CLUSTER_IP=$(kubectl -n $PROJECT_NAME get svc/nfs-server-alpine -o=jsonpath='{.spec.clusterIP}')
-----
 
-Now make sure the var NFS_CLUSTER_IP contains the cluster ip:
-
-[source,bash]
-----
+# Now make sure the var NFS_CLUSTER_IP contains the cluster ip:
 echo $NFS_CLUSTER_IP
+
+# Now install all PVs by running:
+curl https://raw.githubusercontent.com/luszczynski/kubernetes-nfs/master/persistent-volumes.yml | sed "s/REPLACEME/$NFS_CLUSTER_IP/g"  | kubectl apply -f -
 ----
 
-And create 100 PVs:
+==== OPTIONAL
+
+You can create the PVs file in your local machine:
 
 [source,bash]
 ----
-# Create kubernetes list
-cat <<EOF > /tmp/persistent-volume-tmp.yml
-apiVersion: v1
-kind: List
-items:
-EOF
-
 # Create 100 PVs 100Gi
 for i in {0..100}; do
 
 cat <<EOF >> /tmp/persistent-volume-tmp.yml
-- apiVersion: v1
-  kind: PersistentVolume
-  metadata:
-    name: pv$i
-  spec:
-    capacity:
-      storage: 100Gi
-    nfs:
-      server: $NFS_CLUSTER_IP
-      path: /pv$i
-    accessModes:
-      - ReadWriteOnce
-      - ReadWriteMany
-      - ReadOnlyMany
-    persistentVolumeReclaimPolicy: Recycle
-    volumeMode: Filesystem
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv$i
+spec:
+  capacity:
+    storage: 100Gi
+  nfs:
+    server: $NFS_CLUSTER_IP
+    path: /pv$i
+  accessModes:
+    - ReadWriteOnce
+    - ReadWriteMany
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Recycle
+  volumeMode: Filesystem
+---
 EOF
 
 done
 
 # Create all PVs
 kubectl apply -f /tmp/persistent-volume-tmp.yml
+----
+
+== Clean up
+
+=== Removing PVs
+
+[source,bash]
+----
+for i in {0..100}; do
+  kubectl delete pv/pv$i
+done
 ----
